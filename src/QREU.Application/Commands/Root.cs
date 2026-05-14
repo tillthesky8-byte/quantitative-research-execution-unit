@@ -1,7 +1,9 @@
 using System.CommandLine;
 using Application.Models;
 using Application.Options;
+using Application.Runners;
 using Domain.Definitions;
+using Domain.Models;
 using Microsoft.Extensions.Logging;
 
 public sealed class Root : RootCommand
@@ -30,6 +32,19 @@ public sealed class Root : RootCommand
            
             var strategy    = context.GetValue(OptionFactory.strategyOption)    ?? YamlFactory.Strategy    ?? throw new InvalidOperationException("Strategy option is required but was not provided.");
 
+            var runConfiguration = new RunConfiguration
+            {
+                Instruments = instruments!,
+                Factors     = factors!,
+                StartDate   = startDate,
+                EndDate     = endDate,
+                Strategy    = strategy
+            };
+            runConfiguration.Initialize();
+
+            var runner = new RootRunner(runConfiguration, loggerFactory.CreateLogger<RootRunner>(), loggerFactory);
+
+            runner.Run();
         });   
     }
 }

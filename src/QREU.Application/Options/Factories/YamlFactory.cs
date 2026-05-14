@@ -43,11 +43,5 @@ public static class YamlFactory
                 Parameters = yamlConfig.Strategy.Parameters 
             }
             : null;
-        Console.WriteLine($"Loaded YAML configuration from {yamlPath}");
-        Console.WriteLine($"Instruments: {string.Join(", ", Instruments?.Select(i => i.Symbol) ?? Array.Empty<string>())}");
-        Console.WriteLine($"Factors: {string.Join(", ", Factors?.Select(f => string.Join(": ", f.Symbol, f.Name)) ?? Array.Empty<string>())}");
-        Console.WriteLine($"Start Date: {StartDate}");
-        Console.WriteLine($"End Date: {EndDate}");
-        Console.WriteLine($"Strategy: {Strategy?.Type} with parameters {string.Join(", ", Strategy?.Parameters.Select(kv => $"{kv.Key}={kv.Value}") ?? Array.Empty<string>())}");
     }
 }
