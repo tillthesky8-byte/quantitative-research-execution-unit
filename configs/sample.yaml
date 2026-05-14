@@ -1,0 +1,23 @@
+name: sample
+
+instruments:
+  - AAPL
+  - MSFT
+  - GOOG
+
+factors:
+  - symbol: MSFT
+    name: eps
+  - symbol: GOOG
+    name: pe_ratio
+  
+startDate: 1892-01-01
+endDate: 2021-01-01
+
+strategy:
+  type: MeanReversion
+  parameters:
+    lookbackPeriod: 20
+    entryThreshold: 1.5
+    exitThreshold: 0.5
+    source: close
