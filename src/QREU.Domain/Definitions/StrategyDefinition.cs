@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.Text;
 namespace Domain.Definitions;
 
 public sealed class StrategyDefinition
@@ -8,9 +9,15 @@ public sealed class StrategyDefinition
 
     public string BuildHash()
     {
-        var input = $"{Type}:{string.Join(";", Parameters.OrderBy(kv => kv.Key).Select(kv => $"{kv.Key.ToUpperInvariant()}={kv.Value.ToUpperInvariant()}"))}";
-        using var sha256 = SHA256.Create();
-        var hashBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(input));
-        return Convert.ToBase64String(hashBytes);
+        var sb = new StringBuilder();
+        sb.AppendLine("v1");
+        sb.AppendLine($"type:{Type.ToString().ToUpperInvariant()}");
+        foreach (var param in Parameters.OrderBy(p => p.Key))
+        {
+            sb.AppendLine($"{param.Key.ToUpperInvariant()}:{param.Value.ToUpperInvariant()}");
+        }
+        var bytes = Encoding.UTF8.GetBytes(sb.ToString());
+        var hash = SHA256.HashData(bytes);
+        return Convert.ToHexString(hash);
     }
 }

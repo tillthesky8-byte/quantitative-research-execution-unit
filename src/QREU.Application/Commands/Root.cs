@@ -4,6 +4,7 @@ using Application.Options;
 using Application.Runners;
 using Domain.Definitions;
 using Domain.Models;
+using Domain.Other;
 using Microsoft.Extensions.Logging;
 
 public sealed class Root : RootCommand
@@ -14,15 +15,16 @@ public sealed class Root : RootCommand
 
         SetAction(async (context) =>
         {
-            var yaml        = context.GetValue(OptionFactory.yamlOption);
+            var yaml = context.GetValue(OptionFactory.yamlOption);
+
             if (!string.IsNullOrEmpty(yaml))
                 YamlFactory.LoadFromYaml(appSettings.ConfigurationRoot, yaml);
             
-            var instruments = (context.GetValue(OptionFactory.instrumentsOption)?.Count() == 0) 
+            var instruments = (context.GetValue(OptionFactory.instrumentsOption)?.Length == 0) 
                 ? YamlFactory.Instruments : context.GetValue(OptionFactory.instrumentsOption) 
                 ?? throw new InvalidOperationException("Instruments option is required but was not provided.");
 
-            var factors     = (context.GetValue(OptionFactory.factorsOption)?.Count() == 0)    
+            var factors     = (context.GetValue(OptionFactory.factorsOption)?.Length == 0)    
                 ? YamlFactory.Factors     : context.GetValue(OptionFactory.factorsOption)
                 ?? Array.Empty<FactorDefinition>();
 
@@ -32,19 +34,27 @@ public sealed class Root : RootCommand
            
             var strategy    = context.GetValue(OptionFactory.strategyOption)    ?? YamlFactory.Strategy    ?? throw new InvalidOperationException("Strategy option is required but was not provided.");
 
-            var runConfiguration = new RunConfiguration
-            {
-                Instruments = instruments!,
-                Factors     = factors!,
-                StartDate   = startDate,
-                EndDate     = endDate,
-                Strategy    = strategy
-            };
-            runConfiguration.Initialize();
+            var dataset = new DatasetDefinition
+                (
+                    Instruments : instruments!,
+                    Factors     : factors!,
+                    StartDate   : startDate,
+                    EndDate     : endDate
+                );
+
+            var simulator = new SimulatorDefinition
+                (
+                    Strategy       : strategy,
+                    SlippageType   : appSettings.SlippageType,
+                    CommissionType : appSettings.CommissionType,
+                    InitialCash    : appSettings.InitialCash
+                );
+
+            var runConfiguration = new RunConfiguration(appSettings.ConnectionString, dataset, simulator);
 
             var runner = new RootRunner(runConfiguration, loggerFactory.CreateLogger<RootRunner>(), loggerFactory);
 
-            runner.Run();
+            await runner.Run();
         });   
     }
 }

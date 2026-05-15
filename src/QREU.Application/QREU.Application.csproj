@@ -4,7 +4,6 @@
     <ProjectReference Include="..\QREU.Core\QREU.Core.csproj" />
     <ProjectReference Include="..\QREU.Writer\QREU.Writer.csproj" />
     <ProjectReference Include="..\QREU.Domain\QREU.Domain.csproj" />
-    <ProjectReference Include="..\QREU.Modules\QREU.Modules.csproj" />
   </ItemGroup>
 
   <ItemGroup>
