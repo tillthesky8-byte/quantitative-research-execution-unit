@@ -21,7 +21,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\QREU.Core\QREU.Core.csproj" />
     <ProjectReference Include="..\..\src\QREU.Domain\QREU.Domain.csproj" />
-    <ProjectReference Include="..\..\src\QREU.Modules\QREU.Modules.csproj" />
     <ProjectReference Include="..\..\src\QREU.Writer\QREU.Writer.csproj" />
   </ItemGroup>
 

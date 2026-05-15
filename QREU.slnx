@@ -3,7 +3,6 @@
     <Project Path="src/QREU.Application/QREU.Application.csproj" />
     <Project Path="src/QREU.Core/QREU.Core.csproj" />
     <Project Path="src/QREU.Domain/QREU.Domain.csproj" />
-    <Project Path="src/QREU.Modules/QREU.Modules.csproj" />
     <Project Path="src/QREU.Writer/QREU.Writer.csproj" />
   </Folder>
   <Folder Name="/tests/">
