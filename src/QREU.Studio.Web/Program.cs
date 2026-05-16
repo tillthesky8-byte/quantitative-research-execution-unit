@@ -26,7 +26,6 @@ internal class Program
             return Results.Ok(runs);
         });
 
-
         // curl -X GET "http://localhost:9999/ohlc?symbol=MSFT&from=2024-01-01&to=2024-01-31"
         app.MapGet("/ohlc", async (ISeriesRepository repo, string symbol, string from, string to) =>
         {
