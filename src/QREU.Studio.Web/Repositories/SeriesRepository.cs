@@ -13,6 +13,13 @@ public class SeriesRepository : ISeriesRepository
         _logger = logger;
     }
 
+    public async Task<SeriesBundle> GetSeriesBundleAsync(Guid runId, string symbol, DateTime from, DateTime to)
+    {
+        var ohlcTask = GetOhlcAsync(symbol, from, to);
+        var equityCurveTask = GetEquityCurveAsync(runId, from, to);
+        await Task.WhenAll(ohlcTask, equityCurveTask);
+        return new SeriesBundle(ohlcTask.Result, equityCurveTask.Result);
+    }
     public async Task<List<Ohlc>> GetOhlcAsync(string symbol, DateTime from, DateTime to)
     {
         var ohlcList = new List<Ohlc>();

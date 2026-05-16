@@ -486,7 +486,6 @@ $RECYCLE.BIN/
 
 
 data/
-runs/
 docs/
 TempCore.cs
 tests/QREU.Tests

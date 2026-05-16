@@ -60,7 +60,7 @@ public class Simulator : ISimulator
         var orderRequests = _strategy.OnTick(_portfolio, _marketState);
         foreach (var orderRequest in orderRequests)
             _broker.SubmitOrder(orderRequest, _portfolio, _marketState.Timestamp);
-    
+
         _recorder.Record(_marketState.Timestamp, _portfolio.GetEquity(_marketState));
     }
 

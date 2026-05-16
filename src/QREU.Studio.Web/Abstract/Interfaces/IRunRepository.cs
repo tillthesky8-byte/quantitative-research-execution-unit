@@ -4,6 +4,7 @@ namespace Studio.Web.Interfaces;
 
 public interface IRunRepository
 {
-    Task<IEnumerable<Run>> GetRunsAsync();
+    Task<IEnumerable<RawRun>> GetRunsAsync();
+    Task<RawRun> GetRunAsync(Guid runId);
 }
 

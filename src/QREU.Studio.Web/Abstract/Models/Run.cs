@@ -1,6 +1,6 @@
 namespace Studio.Web.Models;
 
-public record Run
+public record RawRun
 (
     Guid         Id,
     DateTime     RanAt,
@@ -9,3 +9,12 @@ public record Run
     string       MetricsJson
 );
     
+public record Run
+(
+    Guid         Id,
+    DateTime     RanAt,
+    string       StrategyName,
+    string[]     Symbols,
+    DateTime     StartDate,
+    DateTime     EndDate
+);

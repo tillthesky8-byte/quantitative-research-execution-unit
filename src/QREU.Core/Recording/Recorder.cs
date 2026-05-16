@@ -10,8 +10,10 @@ public class Recorder : IRecorder
     private readonly List<EquityPoint>      _equityCurve       = [];
     private readonly List<TradeRecord>      _tradeRecords      = [];
     private readonly List<RealizedPnlEvent> _realizedPnlEvents = [];
-    public void Record(long timestamp, decimal equity) =>
+    public void Record(long timestamp, decimal equity) {
         _equityCurve.Add(new EquityPoint(timestamp, equity));
+        Console.WriteLine($"Recorded equity point: Time={DateTimeOffset.FromUnixTimeSeconds(timestamp)}, Equity={equity}");
+    }
 
     public void AppendTrades(IEnumerable<TradeRecord> trades) =>
         _tradeRecords.AddRange(trades);
@@ -56,10 +58,12 @@ public class Recorder : IRecorder
             PayoffRatio      : payoffRatio
         );
 
+        Console.WriteLine($"Build Result: EquityPoints={_equityCurve.Count}, Trades={_tradeRecords.Count}, PnLEvents={_realizedPnlEvents.Count}");
+
         return new SimulationResult
         (
             Metrics            : metrics,
-            EquityCurve        : _equityCurveDaily,
+            EquityCurve        : _equityCurve,
             TradeRecords       : _tradeRecords,
             RealizedPnlEvents  : _realizedPnlEvents,
             StartTime          : startTime.DateTime,
