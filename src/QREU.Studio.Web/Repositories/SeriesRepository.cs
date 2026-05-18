@@ -13,65 +13,64 @@ public class SeriesRepository : ISeriesRepository
         _logger = logger;
     }
 
-    public async Task<SeriesBundle> GetSeriesBundleAsync(Guid runId, string symbol, DateTime from, DateTime to)
-    {
-        var ohlcTask = GetOhlcAsync(symbol, from, to);
-        var equityCurveTask = GetEquityCurveAsync(runId, from, to);
-        await Task.WhenAll(ohlcTask, equityCurveTask);
-        return new SeriesBundle(ohlcTask.Result, equityCurveTask.Result);
-    }
-    public async Task<List<Ohlc>> GetOhlcAsync(string symbol, DateTime from, DateTime to)
+    public async Task<List<Ohlc>> GetOhlcAsync(string symbol, int timeframeInSeconds, long from, long to)
     {
         var ohlcList = new List<Ohlc>();
 
-
         using var connection = await _dbConnectionFactory.CreateConnectionAsync();
         await connection.OpenAsync();
-
         var command = connection.CreateCommand();
         command.CommandText = @"
-            SELECT timestamp, open, high, low, close
+            SELECT
+                symbol,
+                floor(timestamp / ?) * ? AS time,
+                first(open) AS open,
+                max(high) AS high,
+                min(low) AS low,
+                last(close) AS close
             FROM ohlcv_data
             WHERE symbol = ? AND timestamp >= ? AND timestamp <= ?
-            ORDER BY timestamp ASC
-        ";
-
+            GROUP BY symbol, time
+            ORDER BY time ASC ";
+        command.Parameters.Add(new DuckDBParameter { Value = timeframeInSeconds });
+        command.Parameters.Add(new DuckDBParameter { Value = timeframeInSeconds });
         command.Parameters.Add(new DuckDBParameter { Value = symbol });
-        command.Parameters.Add(new DuckDBParameter { Value = ToUnixTimeSeconds(from) });
-        command.Parameters.Add(new DuckDBParameter { Value = ToUnixTimeSeconds(to) });
-
+        command.Parameters.Add(new DuckDBParameter { Value = from });
+        command.Parameters.Add(new DuckDBParameter { Value = to });
         using var reader = await command.ExecuteReaderAsync();
-        while (await reader.ReadAsync())
+        while (await reader.ReadAsync())        
         {
             var ohlc = new Ohlc(
-                Time: reader.GetInt64(0),
-                Open: reader.GetDouble(1),
-                High: reader.GetDouble(2),
-                Low: reader.GetDouble(3),
-                Close: reader.GetDouble(4)
+                Time: reader.GetInt64(1),
+                Open: reader.GetDouble(2),
+                High: reader.GetDouble(3),
+                Low: reader.GetDouble(4),
+                Close: reader.GetDouble(5)
             );
             ohlcList.Add(ohlc);
         }
         return ohlcList;
     }
 
-    public async Task<List<EquityPoint>> GetEquityCurveAsync(Guid runId, DateTime from, DateTime to)
+    public async Task<List<EquityPoint>> GetEquityCurveAsync(Guid runId, int timeframeInSeconds, long from, long to)
     {
         var equityPoints = new List<EquityPoint>();
         using var connection = await _dbConnectionFactory.CreateConnectionAsync();
         await connection.OpenAsync();
         var command = connection.CreateCommand();
         command.CommandText = @"
-            SELECT timestamp, equity
+            SELECT
+                floor(timestamp / ?) * ? AS time,
+                last(equity) AS value
             FROM equity_curve
             WHERE run_id = ? AND timestamp >= ? AND timestamp <= ?
-            ORDER BY timestamp ASC
-        ";
-
+            GROUP BY time
+            ORDER BY time ASC ";
+        command.Parameters.Add(new DuckDBParameter { Value = timeframeInSeconds });
+        command.Parameters.Add(new DuckDBParameter { Value = timeframeInSeconds });
         command.Parameters.Add(new DuckDBParameter { Value = runId });
-        command.Parameters.Add(new DuckDBParameter { Value = ToUnixTimeSeconds(from) });
-        command.Parameters.Add(new DuckDBParameter { Value = ToUnixTimeSeconds(to) });
-
+        command.Parameters.Add(new DuckDBParameter { Value = from });
+        command.Parameters.Add(new DuckDBParameter { Value = to });
         using var reader = await command.ExecuteReaderAsync();
         while (await reader.ReadAsync())
         {
@@ -83,7 +82,6 @@ public class SeriesRepository : ISeriesRepository
         }
         return equityPoints;
     }
-
     public async Task<List<Trade>> GetTradesAsync(Guid runId, DateTime from, DateTime to, int page = 1, int pageSize = 100)
     {
         var trades = new List<Trade>();

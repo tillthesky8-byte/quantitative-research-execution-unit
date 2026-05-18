@@ -23,9 +23,12 @@ public string BuildHash()
         {
             sb.AppendLine(instrument.Symbol.ToUpperInvariant());
         }
-        foreach (var factor in Factors)
+        if (Factors != null)
         {
-            sb.AppendLine($"{factor.Symbol.ToUpperInvariant()}:{factor.Name.ToUpperInvariant()}");
+            foreach (var factor in Factors)
+            {
+                sb.AppendLine($"{factor.Symbol.ToUpperInvariant()}:{factor.Name.ToUpperInvariant()}");
+            }
         }
 
         var bytes = Encoding.UTF8.GetBytes(sb.ToString());

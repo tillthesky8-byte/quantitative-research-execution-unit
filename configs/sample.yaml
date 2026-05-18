@@ -1,20 +1,18 @@
 name: sample
 
 instruments:
-  - MSFT
-  - ORCL
+  - SAP
+
 
 factors:
-  - symbol: MSFT
-    name: eps
   
-startDate: 2019-06-22
-endDate: 2019-07-22
+startDate: 2000-06-22
+endDate: 2029-07-22
 
 strategy:
   type: BBB
   parameters:
-    period: 500
-    sideperiod: 500
-    stdm: 2.5
+    middleperiod: 5000
+    sideperiod: 5000
+    stdm: 2
     source: close

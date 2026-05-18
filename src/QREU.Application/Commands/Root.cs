@@ -25,7 +25,8 @@ public sealed class Root : RootCommand
                 ?? throw new InvalidOperationException("Instruments option is required but was not provided.");
 
             var factors     = (context.GetValue(OptionFactory.factorsOption)?.Length == 0)    
-                ? YamlFactory.Factors     : context.GetValue(OptionFactory.factorsOption)
+                ? (YamlFactory.Factors ?? Array.Empty<FactorDefinition>())
+                : context.GetValue(OptionFactory.factorsOption)
                 ?? Array.Empty<FactorDefinition>();
 
             var startDate   = context.GetValue(OptionFactory.startDateOption)   ?? YamlFactory.StartDate   ?? DateTime.MinValue;

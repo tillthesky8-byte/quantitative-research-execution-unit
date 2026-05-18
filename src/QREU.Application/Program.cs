@@ -1,4 +1,5 @@
 ﻿using System.CommandLine;
+using Application.Commands;
 using Application.Logging;
 using Application.Models;
 using Domain.Other;
@@ -32,7 +33,11 @@ internal class Program
         var resolvedAppSettings = app.Services.GetRequiredService<AppSettings>();
         logger.LogInformation(LogMessages.AppSettingsResolved, resolvedAppSettings.ConnectionString, resolvedAppSettings.ConfigurationRoot);
         
-        var rootCommand = new Root(appSettings, loggerFactory.CreateLogger<Root>(), loggerFactory);
+        var rootCommand = new Root(appSettings, loggerFactory.CreateLogger<Root>(), loggerFactory)
+        {
+            new IngestOhlcvCommand(appSettings, loggerFactory.CreateLogger<IngestOhlcvCommand>(), loggerFactory),
+            new IngestFactorCommand(appSettings, loggerFactory.CreateLogger<IngestFactorCommand>(), loggerFactory)
+        };
 
         return await rootCommand.Parse(args).InvokeAsync();
     }

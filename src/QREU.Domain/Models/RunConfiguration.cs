@@ -3,7 +3,7 @@ using System.Security.Cryptography;
         namespace Domain.Models;
 public sealed class RunConfiguration
 {
-    public string   RunId { get; set; }
+    public Guid RunId { get; set; }
     public DateTime RanAt { get; set; }
     public string DatasetHash  { get; set; }
     public string StrategyHash { get; set; }
@@ -22,7 +22,7 @@ public sealed class RunConfiguration
         Dataset          = dataset;
         Simulator        = simulator;
 
-        RunId        = Guid.NewGuid().ToString();
+        RunId        = Guid.NewGuid();
         RanAt        = DateTime.UtcNow;
         DatasetHash  = Dataset.BuildHash();
         StrategyHash = Simulator.Strategy.BuildHash();

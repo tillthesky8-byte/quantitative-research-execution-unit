@@ -18,6 +18,7 @@ internal class Program
         builder.Services.AddScoped<ISeriesRepository, SeriesRepository>();
 
         builder.Services.AddScoped<IRunService, RunService>();
+        builder.Services.AddScoped<ISeriesService, SeriesService>();
 
         builder.Services.AddCors(options =>
         {
@@ -55,11 +56,11 @@ internal class Program
         });
 
 
-        // curl -X GET "http://localhost:9999/api/series?runId=379d63a1-fd9a-43ad-8f48-5e03ddd76707&symbol=MSFT&from=2024-01-01&to=2024-01-31"
-        app.MapGet("/api/series", async (ISeriesRepository repo, Guid runId, string symbol, string from, string to) =>
+        // curl -X GET "http://localhost:9999/api/series?runId=379d63a1-fd9a-43ad-8f48-5e03ddd76707&symbol=MSFT&timeframe=1d&from=2024-01-01&to=2024-01-31"
+        app.MapGet("/api/series", async (ISeriesService service, Guid runId, string symbol, string timeframe, string from, string to) =>
         {
-            logger.LogInformation("Received request for series bundle: RunId={RunId}, Symbol={Symbol}, From={From}, To={To}", runId, symbol, from, to);
-            var seriesBundle = await repo.GetSeriesBundleAsync(runId, symbol, DateTime.ParseExact(from, "yyyy-MM-dd", null), DateTime.ParseExact(to, "yyyy-MM-dd", null));
+            logger.LogInformation("Received request for series bundle: RunId={RunId}, Symbol={Symbol}, Timeframe={Timeframe}, From={From}, To={To}", runId, symbol, timeframe, from, to);
+            var seriesBundle = await service.GetSeriesBundleAsync(runId, symbol, timeframe, DateTime.ParseExact(from, "yyyy-MM-dd", null), DateTime.ParseExact(to, "yyyy-MM-dd", null));
             return Results.Ok(seriesBundle);
         });
 

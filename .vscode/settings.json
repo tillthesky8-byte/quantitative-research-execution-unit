@@ -1,0 +1,16 @@
+{
+    "cSpell.words": [
+        "middleperiod",
+        "sideperiod",
+        "stddevmultiplier"
+    ],
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "DuckDB",
+            "name": "primary",
+            "database": "Projects/QREU/data/data.duckdb"
+        }
+    ],
+    "sqltools.useNodeRuntime": true
+}

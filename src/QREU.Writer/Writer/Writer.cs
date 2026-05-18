@@ -38,9 +38,9 @@ public class WriteManager
         var metricsJson = JsonSerializer.Serialize(simulationResult.Metrics);
 
         const string query = @"
-            INSERT INTO runs_data 
-            (run_id, ran_at, strategy_name, strategy_hash, dataset_hash, config_json, metrics_json)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO runs 
+            (run_id, ran_at, strategy_name, strategy_hash, dataset_hash, config_json)
+            VALUES (?, ?, ?, ?, ?, ?)
         ";
 
         using var command = connection.CreateCommand();
@@ -51,77 +51,131 @@ public class WriteManager
         command.Parameters.Add(new DuckDBParameter { Value = runConfig.StrategyHash });
         command.Parameters.Add(new DuckDBParameter { Value = runConfig.DatasetHash });
         command.Parameters.Add(new DuckDBParameter { Value = configJson });
-        command.Parameters.Add(new DuckDBParameter { Value = metricsJson });
 
         await command.ExecuteNonQueryAsync();
     }
 
-    private async Task WriteEquityCurve(DuckDBConnection connection, string runId, IEnumerable<EquityPoint> equityCurve)
+    private async Task WriteEquityCurve(DuckDBConnection connection, Guid runId, IEnumerable<EquityPoint> equityCurve)
     {
-        const string query = @"
-            INSERT INTO equity_curve
-            (run_id, timestamp, equity)
-            VALUES (?, ?, ?)
+        using var create = connection.CreateCommand();
+        create.CommandText = @"
+            CREATE TEMP TABLE temp_equity_curve (
+                run_id UUID,
+                timestamp BIGINT,
+                equity DOUBLE,
+                cash DOUBLE
+            );
         ";
+        await create.ExecuteNonQueryAsync();
+
+        using var appender = connection.CreateAppender("temp_equity_curve");
 
         foreach (var point in equityCurve)
         {
-            using var command = connection.CreateCommand();
-            command.CommandText = query;
-            command.Parameters.Add(new DuckDBParameter { Value = runId });
-            command.Parameters.Add(new DuckDBParameter { Value = point.Time });
-            command.Parameters.Add(new DuckDBParameter { Value = Convert.ToDouble(point.Equity) });
+            var row = appender.CreateRow();
+            row.AppendValue(runId);
+            row.AppendValue(point.Time);
+            row.AppendValue((double)point.Equity);
+            row.AppendValue((double)point.Cash);
 
-            await command.ExecuteNonQueryAsync();
+            row.EndRow();
         }
+        await ExportTempTableAsync(connection, "temp_equity_curve", $"data/runs/{runId}/equity.parquet");
+
     }
 
-    private async Task WritePnlEvents(DuckDBConnection connection, string runId, IEnumerable<RealizedPnlEvent> pnlEvents)
+    private async Task WritePnlEvents(DuckDBConnection connection, Guid runId, IEnumerable<RealizedPnlEvent> pnlEvents)
     {
-        const string query = @"
-            INSERT INTO realized_pnl_events
-            (run_id, timestamp, symbol, quantity_closed, entry_price, exit_price, pnl)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+        const string createTempTable = @"
+            CREATE TEMP TABLE temp_pnl (
+                run_id UUID,
+                timestamp BIGINT,
+                symbol VARCHAR,
+                quantity DOUBLE,
+                pnl DOUBLE,
+                commission DOUBLE,
+                entry_price DOUBLE,
+                exit_price DOUBLE
+            );
         ";
+
+        await CreateTempTableAsync(connection, createTempTable);
+
+        using var appender = connection.CreateAppender("temp_pnl");
 
         foreach (var pnlEvent in pnlEvents)
         {
-            using var command = connection.CreateCommand();
-            command.CommandText = query;
-            command.Parameters.Add(new DuckDBParameter { Value = runId });
-            command.Parameters.Add(new DuckDBParameter { Value = pnlEvent.Timestamp });
-            command.Parameters.Add(new DuckDBParameter { Value = pnlEvent.Symbol });
-            command.Parameters.Add(new DuckDBParameter { Value = Convert.ToDouble(pnlEvent.Quantity) });
-            command.Parameters.Add(new DuckDBParameter { Value = Convert.ToDouble(pnlEvent.EntryPrice) });
-            command.Parameters.Add(new DuckDBParameter { Value = Convert.ToDouble(pnlEvent.ExitPrice) });
-            command.Parameters.Add(new DuckDBParameter { Value = Convert.ToDouble(pnlEvent.RealizedPnl) });
+            var row = appender.CreateRow();
+            row.AppendValue(runId);
+            row.AppendValue(pnlEvent.Timestamp);
+            row.AppendValue(pnlEvent.Symbol);
+            row.AppendValue((double)pnlEvent.Quantity);
+            row.AppendValue((double)pnlEvent.RealizedPnl);
+            row.AppendValue((double)pnlEvent.Commission);
+            row.AppendValue((double)pnlEvent.EntryPrice);
+            row.AppendValue((double)pnlEvent.ExitPrice);
 
-            await command.ExecuteNonQueryAsync();
+            row.EndRow();
         }
+
+        await ExportTempTableAsync(connection, "temp_pnl", $"data/runs/{runId}/pnl.parquet");
     }
 
-    private async Task WriteTrades(DuckDBConnection connection, string runId, IEnumerable<TradeRecord> trades)
+    private async Task WriteTrades(DuckDBConnection connection, Guid runId, IEnumerable<TradeRecord> trades)
     {
-        const string query = @"
-            INSERT INTO trade_events
-            (run_id, timestamp, symbol, action, side, quantity, price, commission)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        const string createTempTable = @"
+            CREATE TEMP TABLE temp_trade_events (
+                run_id UUID,
+                timestamp BIGINT,
+                symbol VARCHAR,
+                action VARCHAR,
+                quantity DOUBLE,
+                price DOUBLE,
+                commission DOUBLE
+            );
         ";
+
+        await CreateTempTableAsync(connection, createTempTable);
+
+        using var appender = connection.CreateAppender("temp_trade_events");
 
         foreach (var trade in trades)
         {
-            using var command = connection.CreateCommand();
-            command.CommandText = query;
-            command.Parameters.Add(new DuckDBParameter { Value = runId });
-            command.Parameters.Add(new DuckDBParameter { Value = trade.Time });
-            command.Parameters.Add(new DuckDBParameter { Value = trade.Symbol });
-            command.Parameters.Add(new DuckDBParameter { Value = trade.Action.ToString() });
-            command.Parameters.Add(new DuckDBParameter { Value = ((Domain.Enums.OrderSide)trade.Side).ToString() });
-            command.Parameters.Add(new DuckDBParameter { Value = Convert.ToDouble(trade.Quantity) });
-            command.Parameters.Add(new DuckDBParameter { Value = Convert.ToDouble(trade.Price) });
-            command.Parameters.Add(new DuckDBParameter { Value = Convert.ToDouble(trade.Commission) });
+            var row = appender.CreateRow();
+            row.AppendValue(runId);
+            row.AppendValue(trade.Time);
+            row.AppendValue(trade.Symbol);
+            row.AppendValue(trade.Action.ToString());
+            row.AppendValue((double)trade.Quantity);
+            row.AppendValue((double)trade.Price);
+            row.AppendValue((double)trade.Commission);
 
-            await command.ExecuteNonQueryAsync();
+            row.EndRow();
         }
+
+        await ExportTempTableAsync(connection, "temp_trade_events", $"data/runs/{runId}/trades.parquet");
+    }
+
+    private static async Task CreateTempTableAsync(DuckDBConnection connection, string commandText)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = commandText;
+        await command.ExecuteNonQueryAsync();
+    }
+
+    private static async Task ExportTempTableAsync(DuckDBConnection connection, string tableName, string outputPath)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
+
+        await using var export = connection.CreateCommand();
+        export.CommandText = $@"
+            COPY (
+                SELECT * FROM {tableName}
+            )
+            TO ?
+            (FORMAT PARQUET);
+        ";
+        export.Parameters.Add(new DuckDBParameter { Value = outputPath });
+        await export.ExecuteNonQueryAsync();
     }
 }

@@ -26,6 +26,8 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
 fi
 
 duckdb "$DB_PATH" << EOF
+BEGIN TRANSACTION;
+
 -- Delete child tables first (those with foreign keys), then parent
 DELETE FROM trade_events;
 DELETE FROM equity_curve;
@@ -37,6 +39,13 @@ SELECT COUNT(*) as trade_events_count FROM trade_events;
 SELECT COUNT(*) as equity_curve_count FROM equity_curve;
 SELECT COUNT(*) as realized_pnl_events_count FROM realized_pnl_events;
 SELECT COUNT(*) as runs_data_count FROM runs_data;
+
+COMMIT;
 EOF
 
-echo "✓ Tables cleaned successfully"
+if [ $? -eq 0 ]; then
+    echo "✓ Tables cleaned successfully"
+else
+    echo "✗ Error: Failed to clean tables. All changes have been rolled back."
+    exit 1
+fi

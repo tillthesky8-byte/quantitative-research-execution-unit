@@ -11,7 +11,7 @@ public static class OptionFactory
     public static StartDateOption   startDateOption   = new();
     public static EndDateOption     endDateOption     = new();
     public static StrategyOption    strategyOption    = new();
-
+ 
     public static Option[] GetAllOptions() => new Option[] 
     { 
         instrumentsOption,

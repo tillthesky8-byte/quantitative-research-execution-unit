@@ -10,9 +10,8 @@ public class Recorder : IRecorder
     private readonly List<EquityPoint>      _equityCurve       = [];
     private readonly List<TradeRecord>      _tradeRecords      = [];
     private readonly List<RealizedPnlEvent> _realizedPnlEvents = [];
-    public void Record(long timestamp, decimal equity) {
-        _equityCurve.Add(new EquityPoint(timestamp, equity));
-        Console.WriteLine($"Recorded equity point: Time={DateTimeOffset.FromUnixTimeSeconds(timestamp)}, Equity={equity}");
+    public void Record(long timestamp, decimal equity, decimal cash) {
+        _equityCurve.Add(new EquityPoint(timestamp, equity, cash));
     }
 
     public void AppendTrades(IEnumerable<TradeRecord> trades) =>
@@ -27,14 +26,14 @@ public class Recorder : IRecorder
         if (_equityCurve.Count < 2) throw new InvalidOperationException("At least two equity points are required to build a simulation result.");
 
         var _equityCurveDaily = _equityCurve
-            .GroupBy(ep => new DateTimeOffset(DateTimeOffset.FromUnixTimeSeconds(ep.Time).Date, TimeSpan.Zero))
-            .Select(g => new EquityPoint(g.Key.ToUnixTimeSeconds(), g.Last().Equity))
+            .GroupBy(ep => new DateTimeOffset(DateTimeOffset.FromUnixTimeMilliseconds(ep.Time).Date, TimeSpan.Zero))
+            .Select(g => new EquityPoint(g.Key.ToUnixTimeMilliseconds(), g.Last().Equity, g.Last().Cash))
             .ToList();
 
         var initialEquity = _equityCurveDaily.First().Equity;
         var finalEquity   = _equityCurveDaily.Last().Equity;
-        var startTime     = DateTimeOffset.FromUnixTimeSeconds(_equityCurveDaily.First().Time);
-        var endTime       = DateTimeOffset.FromUnixTimeSeconds(_equityCurveDaily.Last().Time);
+        var startTime     = DateTimeOffset.FromUnixTimeMilliseconds(_equityCurveDaily.First().Time);
+        var endTime       = DateTimeOffset.FromUnixTimeMilliseconds(_equityCurveDaily.Last().Time);
         var years         = (decimal)(endTime - startTime).TotalDays / 365.25m;  
 
         var totalReturn      = (finalEquity - initialEquity) / initialEquity;
@@ -58,7 +57,6 @@ public class Recorder : IRecorder
             PayoffRatio      : payoffRatio
         );
 
-        Console.WriteLine($"Build Result: EquityPoints={_equityCurve.Count}, Trades={_tradeRecords.Count}, PnLEvents={_realizedPnlEvents.Count}");
 
         return new SimulationResult
         (

@@ -32,7 +32,7 @@ public class Simulator : ISimulator
         long? previousTimestamp = null; 
 
         await foreach (var marketEvent in streamer.StreamAsync())
-        {
+        {   
             if (previousTimestamp is not null && marketEvent.Timestamp > previousTimestamp)
             {
                 _marketState.Timestamp = previousTimestamp.Value;
@@ -61,7 +61,7 @@ public class Simulator : ISimulator
         foreach (var orderRequest in orderRequests)
             _broker.SubmitOrder(orderRequest, _portfolio, _marketState.Timestamp);
 
-        _recorder.Record(_marketState.Timestamp, _portfolio.GetEquity(_marketState));
+        _recorder.Record(_marketState.Timestamp, _portfolio.GetEquity(_marketState), _portfolio.Cash);
     }
-
+    
 }

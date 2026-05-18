@@ -82,7 +82,7 @@ public sealed class StreamerFactory
     private string BuildOhlcvQuery()
     {
         var placeholders = string.Join(", ", _instruments.Select(_ => "?"));
-        return $@"
+        var query = $@"
         SELECT
             timestamp,
             symbol,
@@ -97,15 +97,29 @@ public sealed class StreamerFactory
           AND timestamp <= ?
         ORDER BY timestamp ASC
         ";
+        return query;
     }
     private string BuildFactorQuery()
     {
-        var clauses = string.Join(" OR ", _factors.Select(f => "(factor = ? AND symbol = ?)"));
-        return $@"
+        if (_factors.Length == 0)
+        {
+            // If no factors are specified, return a query that will yield no results
+            return @"
+            SELECT
+                timestamp,
+                symbol,
+                name,
+                value
+            FROM factor_data
+            WHERE 1 = 0
+            ";
+        }
+        var clauses = string.Join(" OR ", _factors.Select(f => "(name = ? AND symbol = ?)"));
+        var query = $@"
         SELECT
             timestamp,
             symbol,
-            factor,
+            name,
             value
         FROM factor_data
         WHERE ({clauses})
@@ -113,6 +127,7 @@ public sealed class StreamerFactory
           AND timestamp <= ?
         ORDER BY timestamp ASC
         ";
+        return query;
     }
     private void AddOhlcvParameters(DuckDBCommand command)
     {
@@ -142,6 +157,6 @@ public sealed class StreamerFactory
         _logger?.LogDebug("Added Factor parameter for EndDate in seconds: {EndDate} -> {EndDateSeconds}", EndDate, ConvertToUnixTimestamp(EndDate));
         command.Parameters.Add(new DuckDBParameter { Value = ConvertToUnixTimestamp(EndDate) });
     }
-    private long ConvertToUnixTimestamp(DateTime date) => new DateTimeOffset(date).ToUnixTimeSeconds();
+    private long ConvertToUnixTimestamp(DateTime date) => new DateTimeOffset(date).ToUnixTimeMilliseconds();
 
 }
