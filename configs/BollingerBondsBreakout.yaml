@@ -1,17 +1,17 @@
 name: BollingerBondsBreakout
 
 instruments:
-  - MSFT
+  - EURUSD
 
 factors:
 
 startDate: 2000-01-01
-endDate: 2030-01-01
+endDate: 2029-01-01
 
 strategy:
   type: BollingerBondsBreakout
   parameters:
-    middleBandPeriod: 2000
-    sideBandsPeriod: 2000
+    middleBandPeriod: 250
+    sideBandsPeriod: 4755
     standardDeviationMultiplier: 2
     source: close

@@ -5,8 +5,7 @@ public record RawRun
     Guid         Id,
     DateTime     RanAt,
     string       StrategyName,
-    ConfigJson   ConfigJson,
-    string       MetricsJson
+    ConfigJson   ConfigJson
 );
     
 public record Run

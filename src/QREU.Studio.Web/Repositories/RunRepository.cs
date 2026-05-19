@@ -18,7 +18,7 @@ public class RunRepository : IRunRepository
 
     public async Task<IEnumerable<RawRun>> GetRunsAsync()
     {
-        var query = "SELECT run_id, ran_at, strategy_name, config_json, metrics_json FROM runs_data";
+        var query = "SELECT run_id, ran_at, strategy_name, config_json FROM runs";
         using var connection = await _dbConnectionFactory.CreateConnectionAsync();
         await connection.OpenAsync();
 
@@ -37,8 +37,7 @@ public class RunRepository : IRunRepository
                 Id           : reader.GetGuid(0),
                 RanAt        : reader.GetDateTime(1),
                 StrategyName : reader.GetString(2),
-                ConfigJson   : configJson ?? throw new InvalidOperationException("Failed to deserialize ConfigJson"),
-                MetricsJson  : reader.GetString(4)
+                ConfigJson   : configJson ?? throw new InvalidOperationException("Failed to deserialize ConfigJson")
             );
             runs.Add(run);
         }
@@ -47,7 +46,7 @@ public class RunRepository : IRunRepository
 
     public async Task<RawRun> GetRunAsync(Guid runId)
     {
-        var query = "SELECT run_id, ran_at, strategy_name, config_json, metrics_json FROM runs_data WHERE run_id = ?";
+        var query = "SELECT run_id, ran_at, strategy_name, config_json  FROM runs WHERE run_id = ?";
         using var connection = await _dbConnectionFactory.CreateConnectionAsync();
         await connection.OpenAsync();
         using var command = connection.CreateCommand();
@@ -63,8 +62,7 @@ public class RunRepository : IRunRepository
                 Id           : reader.GetGuid(0),
                 RanAt        : reader.GetDateTime(1),
                 StrategyName : reader.GetString(2),
-                ConfigJson   : configJson ?? throw new InvalidOperationException("Failed to deserialize ConfigJson"),
-                MetricsJson  : reader.GetString(4)
+                ConfigJson   : configJson ?? throw new InvalidOperationException("Failed to deserialize ConfigJson")
             );
             return run;
         }

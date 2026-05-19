@@ -16,6 +16,7 @@ internal class Program
 
         builder.Services.AddScoped<IRunRepository, RunRepository>();
         builder.Services.AddScoped<ISeriesRepository, SeriesRepository>();
+        builder.Services.AddScoped<ISeriesChunkRepository, SeriesChunkRepository>();
 
         builder.Services.AddScoped<IRunService, RunService>();
         builder.Services.AddScoped<ISeriesService, SeriesService>();
@@ -36,6 +37,7 @@ internal class Program
 
         app.UseCors("AllowAll");
 
+
         // curl -X GET http://localhost:9999/api/runs
         app.MapGet("/api/runs", async (IRunService service) =>
         {
@@ -55,6 +57,22 @@ internal class Program
             return Results.Ok(run);
         });
 
+        // curl -X GET http://localhost:9999/api/series/backward-chunk?runId=84c3044a-7a79-45f0-b9ed-e008325f47be&symbol=MSFT&timeframe=1d&from=170406720000&chunkSize=100
+        app.MapGet("/api/series/backward-chunk", async (ISeriesService service, Guid runId, string symbol, string timeframe, long from, int chunkSize) =>
+        {
+            logger.LogInformation("Received request for backward series chunk bundle: RunId={RunId}, Symbol={Symbol}, Timeframe={Timeframe}, From={From}, ChunkSize={ChunkSize}", runId, symbol, timeframe, from, chunkSize);
+            var seriesBundle = await service.GetBackwardSeriesChunkBundleAsync(runId, symbol, timeframe, from, chunkSize);
+            return Results.Ok(seriesBundle);
+        });
+
+
+        // curl -X GET http://localhost:9999/api/series/forward-chunk?runId=84c3044a-7a79-45f0-b9ed-e008325f47be&symbol=MSFT&timeframe=1d&to=1704067200&chunkSize=100
+        app.MapGet("/api/series/forward-chunk", async (ISeriesService service, Guid runId, string symbol, string timeframe, long to, int chunkSize) =>
+        {
+            logger.LogInformation("Received request for forward series chunk bundle: RunId={RunId}, Symbol={Symbol}, Timeframe={Timeframe}, To={To}, ChunkSize={ChunkSize}", runId, symbol, timeframe, to, chunkSize);
+            var seriesBundle = await service.GetForwardSeriesChunkBundleAsync(runId, symbol, timeframe, to, chunkSize);
+            return Results.Ok(seriesBundle);
+        });
 
         // curl -X GET "http://localhost:9999/api/series?runId=379d63a1-fd9a-43ad-8f48-5e03ddd76707&symbol=MSFT&timeframe=1d&from=2024-01-01&to=2024-01-31"
         app.MapGet("/api/series", async (ISeriesService service, Guid runId, string symbol, string timeframe, string from, string to) =>
