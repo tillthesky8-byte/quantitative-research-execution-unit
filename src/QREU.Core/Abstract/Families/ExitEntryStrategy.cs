@@ -16,7 +16,7 @@ public abstract class ExitEntryStrategy : IStrategy
     protected abstract IIndicator[] Indicators { get; }
     private decimal ComputeQuantity(decimal price, IPortfolio portfolio)
     {
-        decimal allocation = 0.05m * portfolio.Cash; 
+        decimal allocation = 0.5m * portfolio.Cash; 
         decimal quantity = Math.Floor(allocation / price);
         return quantity > 0 ? quantity : throw new InvalidOperationException("Not enough cash to open a position");
     }

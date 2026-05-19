@@ -12,11 +12,11 @@ public sealed class CustomBBB : ExitEntryStrategy, IStrategy
     private readonly CustomBollingerBands _bollingerBands;
     protected override IIndicator[] Indicators =>[ _bollingerBands ];
     protected override bool OpenLongCondition(SymbolState symbolState) => 
-        symbolState.Close > _bollingerBands.UpperBand(symbolState.Symbol) && _bollingerBands.IsReady;
+        (symbolState.Close > _bollingerBands.UpperBand(symbolState.Symbol) || symbolState.Close < _bollingerBands.LowerBand(symbolState.Symbol)) && _bollingerBands.IsReady;
     protected override bool OpenShortCondition(SymbolState symbolState) => 
-        symbolState.Close < _bollingerBands.LowerBand(symbolState.Symbol) && _bollingerBands.IsReady;
+        false;
     protected override bool CloseLongCondition(SymbolState symbolState) => 
-        symbolState.Close < _bollingerBands.MiddleBand(symbolState.Symbol);
+        symbolState.Low < _bollingerBands.MiddleBand(symbolState.Symbol) && symbolState.High > _bollingerBands.MiddleBand(symbolState.Symbol);
     protected override bool CloseShortCondition(SymbolState symbolState) => 
         symbolState.Close > _bollingerBands.MiddleBand(symbolState.Symbol);
 

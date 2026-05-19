@@ -1,0 +1,18 @@
+name: BollingerBondsReversion
+
+instruments:
+  - MSFT
+  - ORCL
+
+factors:
+
+startDate: 2000-01-01
+endDate: 2030-01-01
+
+strategy:
+  type: BollingerBondsReversion
+  parameters:
+    middleBandPeriod: 2000
+    sideBandsPeriod: 2000
+    standardDeviationMultiplier: 3
+    source: close

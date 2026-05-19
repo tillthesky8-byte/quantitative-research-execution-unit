@@ -3,12 +3,6 @@ using System.Globalization;
 
 namespace Ingestion.Ingestors;
 
-/// <summary>
-/// Ingests financial factor CSV files into parquet format.
-/// Expected format: CSV with timestamp (unix ms) in first column, factor names in header, values in rows.
-/// Transposes from wide (one row per timestamp, many columns) to long format (one row per timestamp-factor pair).
-/// Output: {symbol}_factors.parquet with columns: timestamp, symbol, name, value
-/// </summary>
 public sealed class FactorIngestor
 {
     private readonly string _connectionString;

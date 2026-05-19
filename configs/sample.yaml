@@ -1,7 +1,11 @@
 name: sample
 
 instruments:
-  - SAP
+  - ORCL
+  - MSFT
+
+
+
 
 
 factors:
@@ -12,7 +16,7 @@ endDate: 2029-07-22
 strategy:
   type: BBB
   parameters:
-    middleperiod: 5000
-    sideperiod: 5000
+    middleperiod: 2500
+    sideperiod: 2500
     stdm: 2
     source: close

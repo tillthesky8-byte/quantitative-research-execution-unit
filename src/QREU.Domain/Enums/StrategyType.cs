@@ -1,4 +1,6 @@
 public enum StrategyType
 {
-    BBB
+    BBB,
+    BollingerBondsBreakout,
+    BollingerBondsReversion
 }

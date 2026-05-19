@@ -489,3 +489,4 @@ data/
 docs/
 TempCore.cs
 tests/QREU.Tests
+src/QREU.Studio.UI/
