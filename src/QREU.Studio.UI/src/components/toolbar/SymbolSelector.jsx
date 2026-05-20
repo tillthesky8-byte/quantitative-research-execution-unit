@@ -1,11 +1,13 @@
+import './SymbolSelector.css'
+
 function SymbolSelector({ symbols, value, onChange }) {
     return (
-        <label>
-            Symbol
+        <label className="symbol-selector">
+            <span className="symbol-selector-label">Symbol</span>
             <select
+                className="symbol-selector-input"
                 value={value}
                 onChange={event => onChange(event.target.value)}
-                style={{ marginLeft: 8 }}
             >
                 {symbols.map(symbol => (
                     <option key={symbol} value={symbol}>

@@ -7,7 +7,7 @@ public record TradeRecord
 (
     string Symbol,
     long Time,
-    int Side,
+    string Side,
     decimal Quantity,
     decimal Price,
     decimal Commission,

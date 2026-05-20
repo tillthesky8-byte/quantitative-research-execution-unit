@@ -1,20 +1,19 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { createColumnHelper, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
 import { useTradeLog } from '../../hooks/useTradeLog'
-
+import './TradeLogTable.css'
 const columnHelper = createColumnHelper()
 
 const columns = [
-    columnHelper.accessor('timestamp', { header: 'Timestamp' }),
+    columnHelper.accessor('time', { header: 'Timestamp' }),
     columnHelper.accessor('symbol', { header: 'Symbol' }),
     columnHelper.accessor('side', { header: 'Side' }),
-    columnHelper.accessor('qty', { header: 'Qty' }),
+    columnHelper.accessor('quantity', { header: 'Qty' }),
     columnHelper.accessor('price', { header: 'Price' }),
-    columnHelper.accessor('pnl', { header: 'PnL' }),
     columnHelper.accessor('action', { header: 'Action' }),
 ]
 
-function TradeLogTable({ runId, from, to }) {
+function TradeLogTable({ runId, from, to, handleTradeMarkersUpdate }) {
     const [sorting, setSorting] = useState([])
     const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 25 })
 
@@ -27,6 +26,16 @@ function TradeLogTable({ runId, from, to }) {
         sorting,
         filters: [],
     })
+
+   useEffect(() => {
+
+    if (rows && rows.length > 0) {
+
+        handleTradeMarkersUpdate(rows)
+
+    }
+
+    }, [rows, handleTradeMarkersUpdate])
 
     const data = useMemo(() => rows, [rows])
 
@@ -52,8 +61,16 @@ function TradeLogTable({ runId, from, to }) {
     }
 
     return (
-        <div>
-            <table>
+        <div className='table-container'>
+            <div className='table-container-header'>
+                <span className='table-title'>Trades</span>
+                <div className='table-stats'>
+                    <span>Total: {total || 0}</span>
+                    <span>Page: {pagination.pageIndex + 1}</span>
+                </div>
+            </div>
+            <div className='table-container-inner'>
+                <table className='trade-table'>
                 <thead>
                     {table.getHeaderGroups().map(headerGroup => (
                         <tr key={headerGroup.id}>
@@ -76,10 +93,12 @@ function TradeLogTable({ runId, from, to }) {
                         </tr>
                     ))}
                 </tbody>
-            </table>
+                </table>
+            </div>
 
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 8 }}>
+            <div className='table-pagination'>
                 <button
+                    className='button'
                     onClick={() => table.previousPage()}
                     disabled={!table.getCanPreviousPage()}
                 >
@@ -89,6 +108,7 @@ function TradeLogTable({ runId, from, to }) {
                     Page {pagination.pageIndex + 1} / {table.getPageCount()}
                 </span>
                 <button
+                    className='button'
                     onClick={() => table.nextPage()}
                     disabled={!table.getCanNextPage()}
                 >

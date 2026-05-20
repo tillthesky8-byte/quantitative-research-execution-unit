@@ -104,7 +104,7 @@ public class Broker : IBroker
         (
             Symbol    : order.Request.Symbol,
             Time      : order.Timestamp,
-            Side      : (int)order.Request.Side,
+            Side      : order.Request.Side.ToString().ToUpper(),
             Quantity  : order.Request.Quantity,
             Price     : executionPrice,
             Commission: commission,

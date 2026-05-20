@@ -9,13 +9,22 @@ async function getJson(path, params = {}) {
         url.searchParams.set(key, String(value))
     })
 
-    const response = await fetch(url.toString())
-    if (!response.ok) {
-        const text = await response.text()
-        throw new Error(`Request failed: ${response.status} ${text}`)
+    console.log('[API] Fetching:', url.toString())
+    try {
+        const response = await fetch(url.toString())
+        console.log('[API] Response status:', response.status)
+        if (!response.ok) {
+            const text = await response.text()
+            console.error('[API] Error response:', text)
+            throw new Error(`Request failed: ${response.status} ${text}`)
+        }
+        const data = await response.json()
+        console.log('[API] Success:', data)
+        return data
+    } catch (error) {
+        console.error('[API] Fetch error:', error)
+        throw error
     }
-
-    return response.json()
 }
 
 export const apiClient = {

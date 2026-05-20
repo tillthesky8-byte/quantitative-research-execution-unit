@@ -1,0 +1,17 @@
+name: CustomBollingerBandsMomentum
+
+instruments:
+  - EURUSD
+
+factors:
+
+startDate: 2000-01-01
+endDate: 2030-01-01
+
+strategy:
+  type: CustomBollingerBandsMomentum
+  parameters:
+    middleBandPeriod: 250
+    sideBandsPeriod: 4755
+    standardDeviationMultiplier: 2
+    source: close

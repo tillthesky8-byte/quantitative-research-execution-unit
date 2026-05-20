@@ -1,3 +1,4 @@
+using Domain.Enums;
 using Domain.Models;
 using DuckDB.NET.Data;
 using System.Text.Json;
@@ -68,18 +69,20 @@ public class WriteManager
         ";
         await create.ExecuteNonQueryAsync();
 
-        using var appender = connection.CreateAppender("temp_equity_curve");
-
-        foreach (var point in equityCurve)
+        using (var appender = connection.CreateAppender("temp_equity_curve"))
         {
-            var row = appender.CreateRow();
-            row.AppendValue(runId);
-            row.AppendValue(point.Time);
-            row.AppendValue((double)point.Equity);
-            row.AppendValue((double)point.Cash);
+            foreach (var point in equityCurve)
+            {
+                var row = appender.CreateRow();
+                row.AppendValue(runId);
+                row.AppendValue(point.Time);
+                row.AppendValue((double)point.Equity);
+                row.AppendValue((double)point.Cash);
 
-            row.EndRow();
+                row.EndRow();
+            }
         }
+
         await ExportTempTableAsync(connection, "temp_equity_curve", $"data/runs/{runId}/equity.parquet");
 
     }
@@ -101,21 +104,22 @@ public class WriteManager
 
         await CreateTempTableAsync(connection, createTempTable);
 
-        using var appender = connection.CreateAppender("temp_pnl");
-
-        foreach (var pnlEvent in pnlEvents)
+        using (var appender = connection.CreateAppender("temp_pnl"))
         {
-            var row = appender.CreateRow();
-            row.AppendValue(runId);
-            row.AppendValue(pnlEvent.Timestamp);
-            row.AppendValue(pnlEvent.Symbol);
-            row.AppendValue((double)pnlEvent.Quantity);
-            row.AppendValue((double)pnlEvent.RealizedPnl);
-            row.AppendValue((double)pnlEvent.Commission);
-            row.AppendValue((double)pnlEvent.EntryPrice);
-            row.AppendValue((double)pnlEvent.ExitPrice);
+            foreach (var pnlEvent in pnlEvents)
+            {
+                var row = appender.CreateRow();
+                row.AppendValue(runId);
+                row.AppendValue(pnlEvent.Timestamp);
+                row.AppendValue(pnlEvent.Symbol);
+                row.AppendValue((double)pnlEvent.Quantity);
+                row.AppendValue((double)pnlEvent.RealizedPnl);
+                row.AppendValue((double)pnlEvent.Commission);
+                row.AppendValue((double)pnlEvent.EntryPrice);
+                row.AppendValue((double)pnlEvent.ExitPrice);
 
-            row.EndRow();
+                row.EndRow();
+            }
         }
 
         await ExportTempTableAsync(connection, "temp_pnl", $"data/runs/{runId}/pnl.parquet");
@@ -128,6 +132,7 @@ public class WriteManager
                 run_id UUID,
                 timestamp BIGINT,
                 symbol VARCHAR,
+                side VARCHAR,
                 action VARCHAR,
                 quantity DOUBLE,
                 price DOUBLE,
@@ -137,20 +142,22 @@ public class WriteManager
 
         await CreateTempTableAsync(connection, createTempTable);
 
-        using var appender = connection.CreateAppender("temp_trade_events");
-
-        foreach (var trade in trades)
+        using (var appender = connection.CreateAppender("temp_trade_events"))
         {
-            var row = appender.CreateRow();
-            row.AppendValue(runId);
-            row.AppendValue(trade.Time);
-            row.AppendValue(trade.Symbol);
-            row.AppendValue(trade.Action.ToString());
-            row.AppendValue((double)trade.Quantity);
-            row.AppendValue((double)trade.Price);
-            row.AppendValue((double)trade.Commission);
+            foreach (var trade in trades)
+            {
+                var row = appender.CreateRow();
+                row.AppendValue(runId);
+                row.AppendValue(trade.Time);
+                row.AppendValue(trade.Symbol);
+                row.AppendValue(trade.Side);
+                row.AppendValue(trade.Action.ToString());
+                row.AppendValue((double)trade.Quantity);
+                row.AppendValue((double)trade.Price);
+                row.AppendValue((double)trade.Commission);
 
-            row.EndRow();
+                row.EndRow();
+            }
         }
 
         await ExportTempTableAsync(connection, "temp_trade_events", $"data/runs/{runId}/trades.parquet");

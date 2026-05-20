@@ -33,7 +33,7 @@ public class SeriesChunkRepository : ISeriesChunkRepository
             FROM read_parquet('../../data/parquet/ohlcv/*.parquet')
             WHERE symbol = ? AND timestamp <= ?
             GROUP BY symbol, time
-            ORDER BY time DESC
+            ORDER BY time ASC
             LIMIT ?";
         command.Parameters.Add(new DuckDBParameter { Value = timeframeInMilliseconds });
         command.Parameters.Add(new DuckDBParameter { Value = timeframeInMilliseconds });
@@ -44,7 +44,7 @@ public class SeriesChunkRepository : ISeriesChunkRepository
         while (await reader.ReadAsync())
         {            
             var ohlc = new Ohlc(
-                Time: reader.GetInt64(1),
+                Time: reader.GetInt64(1) / 1000, // Convert back to seconds
                 Open: reader.GetDouble(2),
                 High: reader.GetDouble(3),
                 Low: reader.GetDouble(4),
@@ -69,7 +69,7 @@ public class SeriesChunkRepository : ISeriesChunkRepository
             FROM read_parquet(?)
             WHERE run_id = ? AND timestamp <= ?
             GROUP BY time
-            ORDER BY time DESC
+            ORDER BY time ASC
             LIMIT ?";
         command.Parameters.Add(new DuckDBParameter { Value = timeframeInMilliseconds });
         command.Parameters.Add(new DuckDBParameter { Value = timeframeInMilliseconds });
@@ -81,7 +81,7 @@ public class SeriesChunkRepository : ISeriesChunkRepository
         while (await reader.ReadAsync())
         {
             var point = new EquityPoint(
-                Time: reader.GetInt64(0),
+                Time: reader.GetInt64(0) / 1000, // Convert back to seconds
                 Value: reader.GetDouble(1)
             );
             equityPoints.Add(point);
@@ -117,7 +117,7 @@ public class SeriesChunkRepository : ISeriesChunkRepository
         while (await reader.ReadAsync())        
         {
             var ohlc = new Ohlc(
-                Time: reader.GetInt64(1),
+                Time: reader.GetInt64(1) / 1000, // Convert back to seconds
                 Open: reader.GetDouble(2),
                 High: reader.GetDouble(3),
                 Low: reader.GetDouble(4),
@@ -154,7 +154,7 @@ public class SeriesChunkRepository : ISeriesChunkRepository
         while (await reader.ReadAsync())
         {
             var point = new EquityPoint(
-                Time: reader.GetInt64(0),
+                Time: reader.GetInt64(0) / 1000, // Convert back to seconds
                 Value: reader.GetDouble(1)
             );
             equityPoints.Add(point);

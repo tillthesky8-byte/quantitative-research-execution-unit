@@ -17,9 +17,11 @@ internal class Program
         builder.Services.AddScoped<IRunRepository, RunRepository>();
         builder.Services.AddScoped<ISeriesRepository, SeriesRepository>();
         builder.Services.AddScoped<ISeriesChunkRepository, SeriesChunkRepository>();
+        builder.Services.AddScoped<ITradeRepository, TradeRepository>();
 
         builder.Services.AddScoped<IRunService, RunService>();
         builder.Services.AddScoped<ISeriesService, SeriesService>();
+        builder.Services.AddScoped<ITradeService, TradeService>();
 
         builder.Services.AddCors(options =>
         {
@@ -82,11 +84,18 @@ internal class Program
             return Results.Ok(seriesBundle);
         });
 
-        // curl -X GET "http://localhost:9999/api/trades?runId=379d63a1-fd9a-43ad-8f48-5e03ddd76707&from=2024-01-01&to=2024-01-31&page=1&pageSize=100"
-        app.MapGet("/api/trades", async (ISeriesRepository repo, Guid runId, string from, string to, int page = 1, int pageSize = 100) =>
+        // curl -X GET "http://localhost:9999/api/trades?runId=379d63a1-fd9a-43ad-8f48-5e03ddd76707&page=1&pageSize=100"
+        app.MapGet("/api/trades", async (ITradeService service, Guid runId, int page = 1, int pageSize = 100) =>
         {
-            var trades = await repo.GetTradesAsync(runId, DateTime.ParseExact(from, "yyyy-MM-dd", null), DateTime.ParseExact(to, "yyyy-MM-dd", null), page, pageSize);
+            var trades = await service.GetTradesAsync(runId, page, pageSize);
             return Results.Ok(trades);
+        });
+
+        // curl -X GET "http://localhost:9999/api/marks?runId=023e4a00-dfc1-4ff4-9b2e-be5a9e3ff6b0&page=1&pageSize=100"
+        app.MapGet("/api/markers", async (ITradeService service, Guid runId, int page = 1, int pageSize = 100) =>
+        {
+            var marks = await service.GetMarksAsync(runId, page, pageSize);
+            return Results.Ok(marks);
         });
 
         app.Run();

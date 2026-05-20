@@ -1,13 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
-import { fetchTrades } from '../api/tradeApi'
+import { fetchTradeMarkers, fetchTrades } from '../api/tradeApi'
 
-export function useTradeLog({ runId, from, to, pageIndex, pageSize, sorting, filters }) {
-    const queryKey = ['trades', runId, from, to, pageIndex, pageSize, sorting, filters]
+export function useTrades({ runId, pageIndex, pageSize }) {
+    const queryKey = ['trades', runId, pageIndex, pageSize]
 
     const query = useQuery({
         queryKey,
-        queryFn: () => fetchTrades({ runId, from, to, pageIndex, pageSize, sorting, filters }),
-        enabled: Boolean(runId && from && to),
+        queryFn: () => fetchTrades({ runId, pageIndex, pageSize }),
+        enabled: Boolean(runId),
         placeholderData: previous => previous,
     })
 
@@ -21,4 +21,21 @@ export function useTradeLog({ runId, from, to, pageIndex, pageSize, sorting, fil
         isLoading: query.isLoading,
         error: query.error,
     }
+}
+
+
+export function useTradeMarkers({ runId, pageIndex, pageSize }) {
+    const queryKey = ['tradeMarkers', runId, pageIndex, pageSize]
+
+    const query = useQuery({
+        queryKey,
+        queryFn: () => fetchTradeMarkers({ runId, pageIndex, pageSize }),
+        enabled: Boolean(runId),
+        placeholderData: previous => previous,
+    })
+
+    const payload = query.data || []
+    console.log('Fetched trades for markers:', payload)
+
+    return { tradeMarkers: payload, isLoading: query.isLoading, error: query.error }
 }

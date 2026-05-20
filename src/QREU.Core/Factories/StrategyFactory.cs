@@ -9,8 +9,8 @@ public static class StrategyFactory
         return strategyType switch
         {
             StrategyType.BBB => new CustomBBB(parameters),
-            StrategyType.BollingerBondsBreakout => new BollingerBondsBreakout(parameters),
             StrategyType.BollingerBondsReversion => new BollingerBondsReversion(parameters),
+            StrategyType.CustomBollingerBandsMomentum => new CustomBollingerBandsMomentum(parameters),
             _ => throw new ArgumentException($"Unsupported strategy type: {strategyType}")
         };
     }

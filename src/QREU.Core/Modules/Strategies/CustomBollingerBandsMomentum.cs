@@ -6,7 +6,7 @@ using Modules.Indicators;
 
 namespace Modules.Strategies;
 
-public sealed class BollingerBondsBreakout : ExitEntryStrategy, IStrategy
+public sealed class CustomBollingerBandsMomentum : ExitEntryStrategy, IStrategy
 {
     private readonly CustomBollingerBands _bollingerBands;
 
@@ -24,7 +24,7 @@ public sealed class BollingerBondsBreakout : ExitEntryStrategy, IStrategy
     protected override bool CloseShortCondition(SymbolState symbolState) =>
         _bollingerBands.IsReady && symbolState.Close > _bollingerBands.MiddleBand(symbolState.Symbol);
 
-    public BollingerBondsBreakout(IReadOnlyDictionary<string, string> rawParameters)
+    public CustomBollingerBandsMomentum(IReadOnlyDictionary<string, string> rawParameters)
     {
         var parameters = rawParameters.ToDictionary(kv => Normalize(kv.Key), kv => kv.Value);
 
